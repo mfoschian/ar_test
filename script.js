@@ -1,30 +1,4 @@
-
-window.onload = () => {
-	const button = document.querySelector('button[data-action="change"]');
-	button.innerText = '﹖';
-
-	let places = staticLoadPlaces();
-	renderPlaces(places);
-};
-
-function staticLoadPlaces() {
-	/*
-		https://www.latlong.net/
-
-
-		Argentino: 45.805893,13.509980
-		PCR (dietro):	45.911497,13.333447
-		PCR (mosaico): 45.910754,13.334037
-	*/
-	return [
-		{
-			name: 'Argentino', location: { lat: 45.805893, lng: 13.509980, },
-			name: 'PCR1', location: { lat: 45.911497, lng: 13.333447, },
-			name: 'PCR2', location: { lat: 45.910754, lng: 13.334037, },
-		},
-	];
-}
-
+// Assets
 var models = [
 	{
 		url: './assets/magnemite/scene.gltf',
@@ -46,8 +20,21 @@ var models = [
 	},
 ];
 
+// Current displayed asset
 var modelIndex = 0;
-var setModel = function (model, entity) {
+
+function getPlaces() {
+	// https://www.latlong.net/
+	return [
+		{ name: 'Argentino', location: { lat: 45.805893, lng: 13.509980, } },
+		{ name: 'PCR1', location: { lat: 45.911497, lng: 13.333447, } },
+		{ name: 'PCR2', location: { lat: 45.910754, lng: 13.334037, } },
+	];
+}
+
+function setModel(model, entity) {
+	if( !model || !entity ) return;
+
 	if (model.scale) {
 		entity.setAttribute('scale', model.scale);
 	}
@@ -66,27 +53,45 @@ var setModel = function (model, entity) {
 	div.innerText = model.info;
 };
 
+
+
 function renderPlaces(places) {
 	let scene = document.querySelector('a-scene');
+	let currentModel = models[modelIndex];
 
 	places.forEach((place) => {
 		let latitude = place.location.lat;
 		let longitude = place.location.lng;
 
-		let model = document.createElement('a-entity');
-		model.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
+		let modelTag = document.createElement('a-entity');
+		modelTag.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
 
-		setModel(models[modelIndex], model);
+		setModel(currentModel, modelTag);
 
-		model.setAttribute('animation-mixer', '');
+		modelTag.setAttribute('animation-mixer', '');
 
-		document.querySelector('button[data-action="change"]').addEventListener('click', function () {
-			var entity = document.querySelector('[gps-entity-place]');
-			modelIndex++;
-			var newIndex = modelIndex % models.length;
-			setModel(models[newIndex], entity);
-		});
-
-		scene.appendChild(model);
+		scene.appendChild(modelTag);
 	});
 }
+
+
+
+window.onload = () => {
+	const button = document.querySelector('button[data-action="change"]');
+	button.innerText = '﹖';
+
+	let places = getPlaces();
+	renderPlaces(places);
+
+	document.querySelector('button[data-action="change"]').addEventListener('click', function () {
+		let entity = document.querySelector('[gps-entity-place]');
+
+		modelIndex = (modelIndex+1) % models.length;
+		let currentModel = models[modelIndex];
+
+		setModel(currentModel, entity);
+	});
+
+};
+
+
